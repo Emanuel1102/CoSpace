@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none">
+  <rect width="1200" height="800" fill="#E6EEE8"/>
+  <circle cx="920" cy="170" r="220" fill="#D2E0D5"/>
+  <path d="M0 580 330 360l278 166 232-212 360 265v221H0V580Z" fill="#B5C9B8"/>
+  <path d="M0 666 300 500l270 132 260-182 370 197v153H0V666Z" fill="#174B3A"/>
+  <rect x="460" y="350" width="270" height="190" rx="14" fill="#F7F5EF"/>
+  <path d="M490 380h210v130H490z" fill="#C5D8C9"/>
+  <path d="M510 520h168v20H510z" fill="#C76E4D"/>
+  <text x="600" y="720" text-anchor="middle" fill="#10392C" font-family="Arial,sans-serif" font-size="34" font-weight="700">CoSpace</text>
+</svg>
