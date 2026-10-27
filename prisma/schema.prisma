@@ -1,0 +1,86 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SpaceType {
+  DESK
+  MEETING_ROOM
+  BOOTH
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(USER)
+  createdAt     DateTime       @default(now())
+  bookings      Booking[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Space {
+  id           String    @id @default(uuid())
+  name         String
+  type         SpaceType
+  description  String
+  capacity     Int
+  pricePerHour Int
+  imageUrl     String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bookings     Booking[]
+
+  @@map("spaces")
+}
+
+model Booking {
+  id             String        @id @default(uuid())
+  userId         String
+  spaceId        String
+  startsAt       DateTime
+  endsAt         DateTime
+  totalPrice     Int
+  status         BookingStatus @default(CONFIRMED)
+  cancelledAt    DateTime?
+  idempotencyKey String?       @unique
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id])
+  space          Space         @relation(fields: [spaceId], references: [id])
+
+  @@index([spaceId, startsAt, endsAt])
+  @@index([userId, startsAt])
+  @@map("bookings")
+}
