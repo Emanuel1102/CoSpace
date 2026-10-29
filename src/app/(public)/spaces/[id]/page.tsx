@@ -6,6 +6,9 @@ import { BookingForm } from "@/features/bookings/components/booking-form";
 import { getSpace } from "@/features/spaces/server/spaces.service";
 import { AppError } from "@/lib/errors";
 
+export const dynamic = "force-dynamic";
+
+
 interface SpaceDetailPageProps {
   params: Promise<{ id: string }>;
 }

@@ -5,6 +5,9 @@ import { SpaceFilters } from "@/features/spaces/components/space-filters";
 import { SpaceGrid } from "@/features/spaces/components/space-grid";
 import { Notice } from "@/shared/components/notice";
 
+export const dynamic = "force-dynamic";
+
+
 interface SpacesPageProps {
   searchParams: Promise<{ type?: string }>;
 }
