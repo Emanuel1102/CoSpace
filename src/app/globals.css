@@ -1,12 +1,7 @@
 @import "tailwindcss";
 
-/* 
-color original (solo estoy cambiando el color para probar CI/CD)
-#f7f5ef
- */
-
 :root {
-  --background: #9c884f;
+  --background: #f7f5ef;
   --foreground: #17231d;
   --surface: #ffffff;
   --muted: #68756c;
