@@ -1,0 +1,74 @@
+name: Deploy CoSpace to AWS EC2
+
+on:
+  push:
+    branches:
+      - main # Se ejecutará cada vez que hagas push o merge a la rama main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }} # Toma automáticamente tu usuario/repositorio en minúsculas
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 1. Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: 2. Convertir nombre de repositorio a minúsculas
+        run: echo "IMAGE_NAME_LOWER=${IMAGE_NAME,,}" >> $GITHUB_ENV
+
+      - name: 3. Iniciar sesión en GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 4. Construir y subir imagen de Producción (runner)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+
+      - name: 5. Construir y subir imagen Builder (para migraciones de Prisma)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: builder
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:builder
+
+      - name: 6. Desplegar en AWS EC2 vía SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Iniciar sesión en GHCR desde el EC2
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Descargar las imágenes recién construidas
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:builder
+
+            # Entrar a la carpeta donde está tu archivo .env (ajusta la ruta si tu carpeta se llama distinto)
+            cd ~/CoSpace
+
+            # Ejecutar migraciones pendientes en RDS de forma segura
+            docker run --rm --env-file .env ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:builder npx prisma migrate deploy --config prisma7.config.ts
+
+            # Detener y reemplazar el contenedor antiguo por el nuevo
+            docker stop cospace-app || true
+            docker rm cospace-app || true
+            docker run -d -p 3000:3000 --env-file .env --restart always --name cospace-app ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+
+            # Limpiar imágenes viejas para no llenar el disco de 16 GB
+            docker image prune -f
