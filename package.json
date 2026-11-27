@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "docker:build" : "docker build -t cospace .",
-    "docker:run" : "docker run --rm -p 3000:3000 --env-file .env --name cospace-app cospace",
+    "docker:build": "docker build -t cospace .",
+    "docker:run": "docker run --rm -p 3000:3000 --env-file .env --name cospace-app cospace",
     "db:generate": "prisma generate",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1178.0",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "bcryptjs": "^3.0.3",

@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { SpaceType } from "@/generated/prisma/client";
 
-const imageUrlSchema = z.union([z.string().trim().url(), z.string().trim().startsWith("/")]);
+const S3_KEY_REGEX = /^fotos\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
+
+const imageUrlSchema = z.union([
+  z.string().trim().url(),
+  z.string().trim().startsWith("/"),
+  z.string().trim().regex(S3_KEY_REGEX),
+]);
 
 export const createSpaceSchema = z.object({
   name: z.string().trim().min(2).max(100),
